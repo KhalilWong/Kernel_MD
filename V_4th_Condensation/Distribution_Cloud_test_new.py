@@ -825,13 +825,16 @@ def Criterion_Plot(Name, x, f1, f2, XSN, Y1L, Y1H, Y2L, Y2H):
 @nb.jit(nopython = True, nogil = True)
 def CLL_R(Type, ui, vi, wi, ur, l, lui):
     if Type == 0:
-        sigma = l[0] * np.exp(- l[1] * vi ** 2 - l[2] * wi ** 2)
+        #sigma = l[0] * np.exp(- l[1] * vi ** 2 - l[2] * wi ** 2)
         #sigma = max(sigma, 1e-32)
         #tt = 1 - math.log(l1 + l2 * vi ** 2 - l3 * wi ** 2)
         #R = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (sigma * (2 - sigma)))
         #R = 1 / np.sqrt(np.pi * l[3] * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (l[3] * sigma * (2 - sigma)))
         #R = 1 / np.sqrt(np.pi * lui * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (lui * sigma * (2 - sigma)))
         Rui = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (sigma * (2 - sigma)))
+        Rvi = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * vi) ** 2 / (sigma * (2 - sigma)))
+        Rwi = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * wi) ** 2 / (sigma * (2 - sigma)))
+        R = Rui + Rvi + Rwi - 2
         #
         '''
         sigma1 = l1
