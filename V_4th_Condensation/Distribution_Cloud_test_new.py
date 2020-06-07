@@ -4,11 +4,11 @@ Description:       Calculate and Fit Distribution Clouds
 Auther:            KhalilWong
 License:           MIT License
 Copyright:         Copyright (C) 2020, by KhalilWong
-Version:           1.0.0
-Date:              2020/04/11
-Namespace:         https://github.com/KhalilWong
-DownloadURL:       https://github.com/KhalilWong/...
-UpdateURL:         https://github.com/KhalilWong/...
+Version:           1.5.0
+Date:              2020/06/07
+Namespace:         https://github.com/KhalilWong/Kernel_MD
+DownloadURL:       https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/Distribution_Cloud_test_new.py
+UpdateURL:         https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/Distribution_Cloud_test_new.py
 '''
 ################################################################################
 import numpy as np
