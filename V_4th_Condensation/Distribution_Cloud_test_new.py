@@ -365,7 +365,7 @@ def AP_Distribution_Cloud(N, X, Y, Adsorbed, I, J, XL = 0.0, XH = 0.0, YL = 0.0,
             count_all = 0
             count_ad = 0
             for n in range(N):
-                if XLow + (i - 0.5) * dX <= X[n] < XHigh - (I - i - 0.5) * dX) and (YLow + (j - 0.5) * dY <= Y[n] < YHigh - (J - j - 0.5) * dY:
+                if XLow + (i - 0.5) * dX <= X[n] < XHigh - (I - i - 0.5) * dX and YLow + (j - 0.5) * dY <= Y[n] < YHigh - (J - j - 0.5) * dY:
                     count_all += 1
                     if Adsorbed[n] == 1:
                         count_ad += 1
@@ -823,18 +823,21 @@ def Criterion_Plot(Name, x, f1, f2, XSN, Y1L, Y1H, Y2L, Y2H):
 
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
-def CLL_R(Type, ui, vi, wi, ur, l, lui):
+def CLL_R(Type, ui, vi, wi, ur, l):
     if Type == 0:
-        #sigma = l[0] * np.exp(- l[1] * vi ** 2 - l[2] * wi ** 2)
+        ##sigma = l[0] * np.exp(- l[1] * vi ** 2 - l[2] * wi ** 2)
+        sigma1 = l[0]
+        sigma2 = l[1]
+        sigma3 = l[2]
         #sigma = max(sigma, 1e-32)
         #tt = 1 - math.log(l1 + l2 * vi ** 2 - l3 * wi ** 2)
         #R = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (sigma * (2 - sigma)))
-        #R = 1 / np.sqrt(np.pi * l[3] * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (l[3] * sigma * (2 - sigma)))
+        ##R = 1 / np.sqrt(np.pi * l[3] * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (l[3] * sigma * (2 - sigma)))
         #R = 1 / np.sqrt(np.pi * lui * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (lui * sigma * (2 - sigma)))
-        Rui = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * ui) ** 2 / (sigma * (2 - sigma)))
-        Rvi = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * vi) ** 2 / (sigma * (2 - sigma)))
-        Rwi = 1 / np.sqrt(np.pi * sigma * (2 - sigma)) * np.exp(- (ur - (1 - sigma) * wi) ** 2 / (sigma * (2 - sigma)))
-        R = Rui + Rvi + Rwi
+        Rui = 1 / np.sqrt(np.pi * sigma1 * (2 - sigma1)) * np.exp(- (ur - (1 - sigma1) * ui) ** 2 / (sigma1 * (2 - sigma1)))
+        Rvi = 1 / np.sqrt(np.pi * sigma2 * (2 - sigma2)) * np.exp(- (ur - (1 - sigma2) * vi) ** 2 / (sigma2 * (2 - sigma2)))
+        Rwi = 1 / np.sqrt(np.pi * sigma3 * (2 - sigma3)) * np.exp(- (ur - (1 - sigma3) * wi) ** 2 / (sigma3 * (2 - sigma3)))
+        R = l[3] * Rui + l[4] * Rvi + l[5] * Rwi
         #
         '''
         sigma1 = l1
@@ -854,23 +857,28 @@ def CLL_R(Type, ui, vi, wi, ur, l, lui):
         #tt=l1-l2*math.exp(-l3*abs(ur**2-ui**2))
         #tt=1-math.log(l1+l1*vi**2+l3*wi**2)
         #tt=l1+l2*np.cos(l3*(vi**2+wi**2)+l4)
-        alpha = l[0] * np.exp(- l[1] * vi ** 2 - l[1] * wi ** 2)
+        ##alpha = l[0] * np.exp(- l[1] * vi ** 2 - l[1] * wi ** 2)
+        alpha1 = l[0]
+        alpha2 = l[1]
+        alpha3 = l[2]
         #alpha=tt*(2-tt)
         #alpha=tt
         #alpha1 = l1
         #alpha2 = l2
         N_theta = 100                                                           #1000
         R = 0.0
-        #R1 = 0.0
-        #R2 = 0.0
+        R1 = 0.0
+        R2 = 0.0
+        R3 = 0.0
         for i in range(N_theta):
-            R += 2 * ur / alpha * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / alpha) / N_theta
-            #R += 2 * ur / (l[2] * alpha) * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / (l[2] * alpha)) / N_theta
+            #R += 2 * ur / alpha * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / alpha) / N_theta
+            ##R += 2 * ur / (l[2] * alpha) * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / (l[2] * alpha)) / N_theta
             #R += 2 * ur / (lui * alpha) * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / (lui * alpha)) / N_theta
             #R += 2 * ur ** 1.5 / (l[2] * alpha) * np.exp(- (ur ** 2 + (1 - alpha) * ui ** 2 - 2 * np.sqrt(1 - alpha) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / (l[2] * alpha)) / N_theta
-            #R1 += 2 * ur / alpha1 * math.exp(- (ur ** 2 + (1 - alpha1) * ui ** 2 - 2 * math.sqrt(1 - alpha1) * ur * ui * math.cos((i + 0.5) / N_theta * np.pi)) / alpha1) / N_theta
-            #R2 += 2 * ur / alpha2 * math.exp(- (ur ** 2 + (1 - alpha2) * ui ** 2 - 2 * math.sqrt(1 - alpha2) * ur * ui * math.cos((i + 0.5) / N_theta * np.pi)) / alpha2) / N_theta
-        #R = l3 * R1 + l4 * R2
+            R1 += 2 * ur / alpha1 * np.exp(- (ur ** 2 + (1 - alpha1) * ui ** 2 - 2 * np.sqrt(1 - alpha1) * ur * ui * np.cos((i + 0.5) / N_theta * np.pi)) / alpha1) / N_theta
+            R2 += 2 * ur / alpha2 * np.exp(- (ur ** 2 + (1 - alpha2) * vi ** 2 - 2 * np.sqrt(1 - alpha2) * ur * vi * np.cos((i + 0.5) / N_theta * np.pi)) / alpha2) / N_theta
+            R3 += 2 * ur / alpha3 * np.exp(- (ur ** 2 + (1 - alpha3) * wi ** 2 - 2 * np.sqrt(1 - alpha3) * ur * wi * np.cos((i + 0.5) / N_theta * np.pi)) / alpha3) / N_theta
+        R = l[3] * R1 + l[4] * R2 + l[5] * R3
         #
         '''
         alpha1 = l1
@@ -1120,22 +1128,29 @@ def Gradient_Least_Squares(Model, Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, Ga
     alpha = 1e-4
     dlt = 1e-8
     Lim_lt_t = np.ones((len(lt), 2))
-    Lim_lt_t[:, 0] *= -100.0
-    Lim_lt_t[:, 1] *= 100.0
+    #Lim_lt_t[:, 0] *= -100.0
+    Lim_lt_t[:, 0] *= 0.0
+    #Lim_lt_t[:, 1] *= 100.0
+    Lim_lt_t[:, 1] *= 1.0
     #Lim_lt_t = np.array([[-100.0, 100.0] for p in range(len(lt))])
-    Lim_lt_t[0, 0] = 0.0
+    #Lim_lt_t[0, 0] = 0.0
+    #Lim_lt_t[0, 1] = 2.0
+    #Lim_lt_t[1, 0] = 0.0
+    #Lim_lt_t[2, 0] = 0.0
+    #Lim_lt_t[3, 0] = 1.0                                                        #p3下限
     Lim_lt_t[0, 1] = 2.0
-    Lim_lt_t[1, 0] = 0.0
-    Lim_lt_t[2, 0] = 0.0
-    Lim_lt_t[3, 0] = 1.0                                                        #p3下限
+    Lim_lt_t[1, 1] = 2.0
+    Lim_lt_t[2, 1] = 2.0
     Lim_lt_n = np.ones((len(lt), 2))
-    Lim_lt_n[:, 0] *= -100.0
-    Lim_lt_n[:, 1] *= 100.0
+    #Lim_lt_n[:, 0] *= -100.0
+    Lim_lt_n[:, 0] *= 0.0
+    #Lim_lt_n[:, 1] *= 100.0
+    Lim_lt_n[:, 1] *= 1.0
     #Lim_lt_n = np.array([[-100.0, 100.0] for p in range(len(lt))])
-    Lim_lt_n[0, 0] = 0.0
-    Lim_lt_n[0, 1] = 1.0
-    Lim_lt_n[1, 0] = 0.0
-    Lim_lt_n[2, 0] = 1.0                                                        #p2下限
+    #Lim_lt_n[0, 0] = 0.0
+    #Lim_lt_n[0, 1] = 1.0
+    #Lim_lt_n[1, 0] = 0.0
+    #Lim_lt_n[2, 0] = 1.0                                                        #p2下限
     #
     for i in range(len(ui)):
         if fui[i] != 0:
@@ -1586,17 +1601,18 @@ def main():
     Loops = 25000
     mu = 0.999
     #
-    lt_x = np.zeros(3)
-    v_x = np.zeros(3)
-    lt_y = np.zeros(3)
-    v_y = np.zeros(3)
-    lt_z = np.zeros(2)
-    v_z = np.zeros(2)
-    lt_x[0] = 0.5
-    lt_y[0] = 1.5
-    lt_z[0] = 0.5
-    ltwi_z = np.ones(len(ui))
-    vwi_z = np.zeros(len(ui))
+    lt_N = 6
+    lt_x = np.zeros(lt_N)
+    v_x = np.zeros(lt_N)
+    lt_y = np.zeros(lt_N)
+    v_y = np.zeros(lt_N)
+    lt_z = np.zeros(lt_N)
+    v_z = np.zeros(lt_N)
+    lt_x[:3] = 0.5
+    lt_y[:3] = 1.5
+    lt_z[:3] = 0.5
+    #ltwi_z = np.ones(len(ui))
+    #vwi_z = np.zeros(len(ui))
     #lt_x[3] = 1.0
     #lt_y[3] = 1.0
     #lt_z[2] = 1.0
@@ -1644,9 +1660,9 @@ def main():
     Err_X = np.zeros(Loops + 1)
     Err_Y = np.zeros(Loops + 1)
     Err_Z = np.zeros(Loops + 1)
-    lt_X = np.zeros((Loops + 1, 4))
-    lt_Y = np.zeros((Loops + 1, 4))
-    lt_Z = np.zeros((Loops + 1, 3))
+    lt_X = np.zeros((Loops + 1, lt_N))
+    lt_Y = np.zeros((Loops + 1, lt_N))
+    lt_Z = np.zeros((Loops + 1, lt_N))
     #
     '''
     lt1_X=np.zeros(Loops+1)
@@ -1690,29 +1706,29 @@ def main():
     #PAZ_Vec = np.ones((len(wi), 3)) * 0.5
     #VZ_Vec = np.zeros((len(wi), 3))
     #
-    #with open('Fitting-X.log', 'w') as out_x:
-    #    tile = 'Loop\tErrX'
-    #    for i in range(len(lt_x)):
-    #        tile += '\tlt' + str(i) + '_X'
-    #    print(tile, file = out_x)
+    with open('Fitting-X.log', 'w') as out_x:
+        tile = 'Loop\tErrX'
+        for i in range(len(lt_x)):
+            tile += '\tlt' + str(i) + '_X'
+        print(tile, file = out_x)
     #with open('Fitting-Y.log', 'w') as out_y:
     #    tile = 'Loop\tErrY'
     #    for i in range(len(lt_y)):
     #        tile += '\tlt' + str(i) + '_Y'
     #    print(tile, file = out_y)
-    with open('Fitting-Z.log', 'w') as out_z:
-        tile = 'Loop\tErrZ'
-        for i in range(len(lt_z)):
-            tile += '\tlt' + str(i) + '_Z'
-        print(tile, file = out_z)
-    with open('Fitting-Z-wi.log', 'w') as out_z:
-        print('Loop\tltwi', file = out_z)
+    #with open('Fitting-Z.log', 'w') as out_z:
+    #    tile = 'Loop\tErrZ'
+    #    for i in range(len(lt_z)):
+    #        tile += '\tlt' + str(i) + '_Z'
+    #    print(tile, file = out_z)
+    #with open('Fitting-Z-wi.log', 'w') as out_z:
+    #    print('Loop\tltwi', file = out_z)
     #
     for l in range(Loops + 1):
-        #CLL_Rfu, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares(CLL_R, 0, ui, vi, wi, ur, Rfuir, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
+        CLL_Rfu, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares(CLL_R, 0, ui, vi, wi, ur, Rfuir, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
         #CLL_Rfv, CLL_Norv, CLL_Fv, CLL_fvi, CLL_fvr, Erry, lt_y, v_y = Gradient_Least_Squares(CLL_R, 0, vi, ui, wi, vr, Rfvir, fvUa, fuUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_y, v_y)
-        if l % 2 == 0:
-            CLL_Rfw, CLL_Norw, CLL_Fw, CLL_fwi, CLL_fwr, Errz, lt_z, v_z, ltwi_z, vwi_z = Gradient_Least_Squares(CLL_R, 1, wi, ui, vi, wr, Rfwir, fwUa, fuUa, fvUa, GasTGasmpV, WallTGasmpV, mu, lt_z, v_z, ltwi_z, vwi_z)
+        #if l % 2 == 0:
+        #    CLL_Rfw, CLL_Norw, CLL_Fw, CLL_fwi, CLL_fwr, Errz, lt_z, v_z, ltwi_z, vwi_z = Gradient_Least_Squares(CLL_R, 1, wi, ui, vi, wr, Rfwir, fwUa, fuUa, fvUa, GasTGasmpV, WallTGasmpV, mu, lt_z, v_z, ltwi_z, vwi_z)
         #Eps_Rfw,Eps_Norw,Eps_fw,Eps_fwi,Eps_fwr,Errz,lt1_z,lt2_z,lt3_z,lt4_z,lt5_z,lt6_z,v1_z,v2_z,v3_z,v4_z,v5_z,v6_z=Gradient_Least_Squares(Epstein,1,N,wi,ui,vi,wr,Rfwir,fwUa,fuUa,fvUa,VZ,FVZ,VX,VY,Adsorbed,WallTGasmpV,WallTGasmpV,lt1_z,lt2_z,lt3_z,lt4_z,lt5_z,lt6_z,mu,v1_z,v2_z,v3_z,v4_z,v5_z,v6_z)
         #Rec_Rfw,Rec_Norw,Rec_Fw,Rec_fwi,Rec_fwr,Errz,lt1_z,lt2_z,lt3_z,lt4_z,lt5_z,lt6_z,v1_z,v2_z,v3_z,v4_z,v5_z,v6_z=Gradient_Least_Squares(Reciprocal,1,N,wi,ui,vi,wr,Rfwir,fwUa,fuUa,fvUa,VZ,FVZ,VX,VY,Adsorbed,WallTGasmpV,WallTGasmpV,lt1_z,lt2_z,lt3_z,lt4_z,lt5_z,lt6_z,mu,v1_z,v2_z,v3_z,v4_z,v5_z,v6_z)
         #CLL_Rfu, ErrACX, PAX_Vec, VX_Vec = AC_Vec(0, ui, ur, Rfuir, fuUa, GasTGasmpV, WallTGasmpV, PAX_Vec, VX_Vec)
@@ -1732,29 +1748,29 @@ def main():
         #print(Erry, lt_y, CLL_Fv)
         #print(Errz, lt_z, CLL_Fw)
         #print(l, ErrACX, ErrACY, ErrACZ)
-        #with open('Fitting-X.log', 'a') as out_x:
-        #    print('%d\t%f\t%f\t%f\t%f\t%f' % (l, Errx, lt_x[0], lt_x[1], lt_x[2], lt_x[3]), file = out_x)
+        with open('Fitting-X.log', 'a') as out_x:
+            print('%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f' % (l, Errx, lt_x[0], lt_x[1], lt_x[2], lt_x[3], lt_x[4], lt_x[5]), file = out_x)
         #with open('Fitting-Y.log', 'a') as out_y:
         #    print('%d\t%f\t%f\t%f\t%f\t%f' % (l, Erry, lt_y[0], lt_y[1], lt_y[2], lt_y[3]), file = out_y)
-        with open('Fitting-Z.log', 'a') as out_z:
-            print('%d\t%f\t%f\t%f' % (l, Errz, lt_z[0], lt_z[1]), file = out_z)
-        with open('Fitting-Z-wi.log', 'a') as out_z:
-            print(l, ltwi_z, file = out_z)
+        #with open('Fitting-Z.log', 'a') as out_z:
+        #    print('%d\t%f\t%f\t%f' % (l, Errz, lt_z[0], lt_z[1]), file = out_z)
+        #with open('Fitting-Z-wi.log', 'a') as out_z:
+        #    print(l, ltwi_z, file = out_z)
         Loop[l] = l
-        #Err_X[l] = Errx
-        #for p in range(len(lt_x)):
-        #    lt_X[l, p] = lt_x[p]
+        Err_X[l] = Errx
+        for p in range(len(lt_x)):
+            lt_X[l, p] = lt_x[p]
         #Err_Y[l] = Erry
         #for p in range(len(lt_y)):
         #    lt_Y[l, p] = lt_y[p]
-        Err_Z[l] = Errz
-        for p in range(len(lt_z)):
-            lt_Z[l, p] = lt_z[p]
+        #Err_Z[l] = Errz
+        #for p in range(len(lt_z)):
+        #    lt_Z[l, p] = lt_z[p]
         if l % 100 == 0:
-            #Cloud_dat('VX', 'CLL_FVX', I, I, ui, ur, CLL_Rfu, 'Rfu', 'CLL', Rfuir, 'MD', l)
+            Cloud_dat('VX', 'CLL_FVX', I, I, ui, ur, CLL_Rfu, 'Rfu', 'CLL', Rfuir, 'MD', l)
             #Cloud_dat('VY', 'CLL_FVY', I, I, vi, vr, CLL_Rfv, 'Rfv', 'CLL', Rfvir, 'MD', l)
-            if l % 200 == 0:
-                Cloud_dat('VZ', 'CLL_FVZ', I, I, wi, wr, CLL_Rfw, 'Rfw', 'CLL', Rfwir, 'MD', l)
+            #if l % 200 == 0:
+            #    Cloud_dat('VZ', 'CLL_FVZ', I, I, wi, wr, CLL_Rfw, 'Rfw', 'CLL', Rfwir, 'MD', l)
             #Cloud_dat('VX', 'FVX', I, I, ui, ur, ACXMat, 'ACu', 'AC', Rfuir, 'MD', l)
             #Cloud_dat('VY', 'FVY', I, I, vi, vr, ACYMat, 'ACv', 'AC', Rfvir, 'MD', l)
             #Cloud_dat('VZ', 'FVZ', I, I, wi, wr, ACZMat, 'ACw', 'AC', Rfwir, 'MD', l)
@@ -1770,9 +1786,9 @@ def main():
         for i in range(len(PAZ_Vec)):
             print(wi[i, 1], PAZ_Vec[i, 0], PAZ_Vec[i, 1], PAZ_Vec[i, 2], file = out)
     '''
-    #Err_Plot('X', Loop, Err_X, lt_X)
+    Err_Plot('X', Loop, Err_X, lt_X)
     #Err_Plot('Y', Loop, Err_Y, lt_Y)
-    Err_Plot('Z', Loop, Err_Z, lt_Z)
+    #Err_Plot('Z', Loop, Err_Z, lt_Z)
     #FIG12_Distribution_Plot(w,fwUa,fwr,CLL_fwi,CLL_fwr,CLL_Norw,u,fuUa,fur,CLL_fui,CLL_fur,CLL_Noru,fvUa,fvr,CLL_fvi,CLL_fvr,CLL_Norv)
     #Distribution_Plot('VX',u,fui,fur,fua,fuUa,CLL_fui,CLL_fur,CLL_Noru,-3.0,3.0,0.0,0.7,GasT)
     #Distribution_Plot('VY',v,fvi,fvr,fva,fvUa,CLL_fvi,CLL_fvr,CLL_Norv,-3.0,3.0,0.0,0.7,GasT)
