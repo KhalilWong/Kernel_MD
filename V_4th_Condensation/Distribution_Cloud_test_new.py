@@ -4,8 +4,8 @@ Description:       Calculate and Fit Distribution Clouds
 Auther:            KhalilWong
 License:           MIT License
 Copyright:         Copyright (C) 2020, by KhalilWong
-Version:           1.5.0
-Date:              2020/06/07
+Version:           1.5.1
+Date:              2020/06/11
 Namespace:         https://github.com/KhalilWong/Kernel_MD
 DownloadURL:       https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/Distribution_Cloud_test_new.py
 UpdateURL:         https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/Distribution_Cloud_test_new.py
@@ -43,11 +43,11 @@ def ReadFile(FileName):
         FVZ = []
         Adsorbed = []
         for pdata in InData:
-            (id, tt, cn, tmvt, x, y, z, vx, vy, vz, fx, fy, fz, fvx, fvy, fvz, ad) = pdata.split('\t', 16)
+            (id, tt, x, y, z, vx, vy, vz, fx, fy, fz, fvx, fvy, fvz, ad) = pdata.split('\t', 14)
             ID.append(int(id))
             Tt.append(int(tt))
-            CN.append(int(cn))
-            TmVt.append(int(tmvt))
+            #CN.append(int(cn))
+            #TmVt.append(int(tmvt))
             X.append(float(x))
             Y.append(float(y))
             Z.append(float(z))
@@ -66,8 +66,8 @@ def ReadFile(FileName):
                 Adsorbed.append(1)
     ID = np.array(ID)
     Tt = np.array(Tt)
-    CN = np.array(CN)
-    TmVt = np.array(TmVt)
+    #CN = np.array(CN)
+    #TmVt = np.array(TmVt)
     X = np.array(X)
     Y = np.array(Y)
     Z = np.array(Z)
@@ -82,7 +82,7 @@ def ReadFile(FileName):
     FVZ = np.array(FVZ)
     Adsorbed = np.array(Adsorbed)
     #
-    return(ID, Tt, CN, TmVt, X, Y, Z, VX, VY, VZ, FX, FY, FZ, FVX, FVY, FVZ, Adsorbed)
+    return(ID, Tt, X, Y, Z, VX, VY, VZ, FX, FY, FZ, FVX, FVY, FVZ, Adsorbed)
 
 ################################################################################
 def Random_Sampling(N, SamplesN, ID, VX, VY, VZ, FVX, FVY, FVZ, Adsorbed):
@@ -1484,7 +1484,7 @@ def Err_Plot(Name, X_l, Y_Err, Y_lt):
 ################################################################################
 def main():
     FileName = 'Incident_Reflection.data'
-    ID, Tt, CN, TmVt, X, Y, Z, VX, VY, VZ, FX, FY, FZ, FVX, FVY, FVZ, Adsorbed = ReadFile(FileName)
+    ID, Tt, X, Y, Z, VX, VY, VZ, FX, FY, FZ, FVX, FVY, FVZ, Adsorbed = ReadFile(FileName)
     #
     GasT = 300.0
     WallT = 300.0
@@ -1515,7 +1515,7 @@ def main():
     SamplesN = int(N / 10)
     SamplesUAN, SampleID, SampleVX, SampleVY, SampleVZ, SampleFVX, SampleFVY, SampleFVZ, SampleAds = Random_Sampling(N, SamplesN, ID, VX, VY, VZ, FVX, FVY, FVZ, Adsorbed)
     #
-    I = 50#20#50
+    I = 30#20#50
     #
     #cri_Time, Time_Count, cri_f = Criterion(N, UnA_N, Tt, Adsorbed, 200, 35, 0.0, 3500.0)
     #Criterion_Plot('Interaction Time', cri_Time, cri_f, Time_Count, 35, 0.0, 0.5, 0.0, 7000.0)
@@ -1599,7 +1599,7 @@ def main():
     #Cloud_dat('VX', 'CLL_FVZ', I, I, ui, wr, User_Rfuiwr, CloudName1 = 'f', Type = 'CLL', CloudDat0 = Rfuiwr, CloudName0 = 'MD', Loop = 0)
     #
     Loops = 25000
-    mu = 0.999
+    mu = 0.99#0.999
     #
     lt_N = 6
     lt_x = np.zeros(lt_N)
