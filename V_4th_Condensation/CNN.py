@@ -153,5 +153,20 @@ def main():
     net = Net()
     net.to(device)
     Training_d = Training.to(device)
+    Target_d = Target.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
+    #
+    for i in range(1000):
+        # zero the parameter gradients
+        optimizer.zero_grad()
+        # forward + backward + optimize
+        Prediction = net(Training_d)
+        loss = criterion(Prediction, Target)
+        print(loss.item())
+        loss.backward()
+        optimizer.step()
+    #
+    output = Prediction.to("cpu", torch.double)
+    output = output.view(31, 31, 3)
+    Learning_Plot(output)
