@@ -1,3 +1,16 @@
+'''
+Name:              CNN.py
+Description:       CNN
+Auther:            KhalilWong
+License:           MIT License
+Copyright:         Copyright (C) 2020, by KhalilWong
+Version:           1.0.0
+Date:              2020/06/19
+Namespace:         https://github.com/KhalilWong/Kernel_MD
+DownloadURL:       https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/CNN.py
+UpdateURL:         https://github.com/KhalilWong/Kernel_MD/V_4th_Condensation/CNN.py
+'''
+################################################################################
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
