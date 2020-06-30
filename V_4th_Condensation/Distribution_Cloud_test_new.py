@@ -1296,6 +1296,88 @@ def Gradient_Least_Squares(Model, Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, Ga
     #
     return(Mod_Rfu, Mod_Nor, Mod_Fu, Mod_fui, Mod_fur, Err, lt, v, ltui, vui)
 '''
+################################################################################
+@nb.jit(nopython = True, nogil = True)
+def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, GasTmpV, WallTmpV, mu, lt, v):
+    #
+    Mod_Rfu = np.zeros((len(ui), len(vi), len(wi), len(ur)))
+    Mod_Rfu_dlt = np.zeros((len(ui), len(vi), len(wi), len(ur), len(lt)))
+    Mod_fui = np.zeros(len(ui))
+    Mod_fur = np.zeros(len(ur))
+    Mod_Nor = np.zeros(len(ui))
+    Mod_Fu = 0.0
+    Err = 0.0
+    Err_dlt = np.zeros(len(lt))
+    alpha = 1e-4
+    dlt = 1e-8
+    Lim_lt_t = np.ones((len(lt), 2))
+    #Lim_lt_t[:, 0] *= -100.0
+    Lim_lt_t[:, 0] *= 0.0
+    #Lim_lt_t[:, 1] *= 100.0
+    Lim_lt_t[:, 1] *= 1.0
+    #Lim_lt_t = np.array([[-100.0, 100.0] for p in range(len(lt))])
+    #Lim_lt_t[0, 0] = 0.0
+    #Lim_lt_t[0, 1] = 2.0
+    #Lim_lt_t[1, 0] = 0.0
+    #Lim_lt_t[2, 0] = 0.0
+    #Lim_lt_t[3, 0] = 1.0                                                        #p3下限
+    Lim_lt_t[0, 1] = 2.0
+    Lim_lt_t[1, 1] = 2.0
+    Lim_lt_t[2, 1] = 2.0
+    Lim_lt_n = np.ones((len(lt), 2))
+    #Lim_lt_n[:, 0] *= -100.0
+    Lim_lt_n[:, 0] *= 0.0
+    #Lim_lt_n[:, 1] *= 100.0
+    Lim_lt_n[:, 1] *= 1.0
+    #Lim_lt_n = np.array([[-100.0, 100.0] for p in range(len(lt))])
+    #Lim_lt_n[0, 0] = 0.0
+    #Lim_lt_n[0, 1] = 1.0
+    #Lim_lt_n[1, 0] = 0.0
+    #Lim_lt_n[2, 0] = 1.0                                                        #p2下限
+    #
+    for i in range(len(ui)):
+        if fui[i] != 0:
+            dfui = fui[i]
+            for j in range(len(ur)):
+                #
+                for k in range(len(vi)):
+                    for m in range(len(wi)):
+                        Mod_Rfu[i, k, m, j] = Model(Type, ui[i, 1] * GasTmpV / WallTmpV, vi[k, 1] * GasTmpV / WallTmpV, wi[m, 1] * GasTmpV / WallTmpV, ur[j, 1] * GasTmpV / WallTmpV, lt) * GasTmpV / WallTmpV * dfui * fvi[k]  * fwi[m]
+                        for p in range(len(lt)):
+                            lt[p] += dlt
+                            Mod_Rfu_dlt[i, k, m, j, p] = Model(Type, ui[i, 1] * GasTmpV / WallTmpV, vi[k, 1] * GasTmpV / WallTmpV, wi[m, 1] * GasTmpV / WallTmpV, ur[j, 1] * GasTmpV / WallTmpV, lt) * GasTmpV / WallTmpV * dfui * fvi[k]  * fwi[m]
+                            lt[p] -= dlt
+                        Mod_fui[i] += Mod_Rfu[i, k, m, j] * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_Nor[i] += Mod_Rfu[i, k, m, j] / dfui * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_fur[j] += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_Fu += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Err += (Rfuir[i, k, m, j] - Mod_Rfu[i, k, m, j]) ** 2
+                        for p in range(len(lt)):
+                            Err_dlt[p] += (Rfuir[i, k, w, j] - Mod_Rfu_dlt[i, k, w, j, p]) ** 2
+    dErr_dlt = np.zeros(len(lt))
+    for p in range(len(lt)):
+        dErr_dlt[p] = (Err_dlt[p] - Err) / dlt
+        pre_v = v[p]
+        v[p] *= mu
+        v[p] += - alpha * dErr_dlt[p]
+        lt[p] += v[p] + mu * (v[p] - pre_v)
+        if Type == 0:
+            if lt[p] <= Lim_lt_t[p, 0]:
+                lt[p] = Lim_lt_t[p, 0] + alpha#dlt
+                v[p] = - v[p]
+            elif lt[p] >= Lim_lt_t[p, 1] - dlt:
+                lt[p] = Lim_lt_t[p, 1] - 2 * alpha#dlt
+                v[p] = - v[p]
+        elif Type == 1:
+            if lt[p] <= Lim_lt_n[p, 0]:
+                lt[p] = Lim_lt_n[p, 0] + alpha#dlt
+                v[p] = - v[p]
+            elif lt[p] >= Lim_lt_n[p, 1] - dlt:
+                lt[p] = Lim_lt_n[p, 1] - 2 * alpha#dlt
+                v[p] = - v[p]
+    #
+    return(Mod_Rfu, Mod_Nor, Mod_Fu, Mod_fui, Mod_fur, Err, lt, v)
+
 '''
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
