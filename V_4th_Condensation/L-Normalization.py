@@ -4,7 +4,7 @@ import random
 
 ################################################################################
 def Function(x):
-    f = (x - 1.0) ** 2 + 2.0 + random.random()
+    f = (x - 1.0) ** 2 + 2.0 + 2 * random.random()
     return f
 
 ################################################################################
@@ -83,9 +83,9 @@ def main():
     #
     fig, ax = mpl.subplots()
     ax.plot(x, y_target, 'r', label = 'Target: $f = x^{2} - 2x + 3 + noise$')
-    ax.plot(x, y_prediction, 'b', label = 'Prediction: $f = x^{' + str(round(p[2], 3)) + '} - ' + str(round(p[1], 3)) + 'x + ' + str(round(p[0], 3)) + '$')
-    ax.plot(x, y_prediction_L1, 'g', label = 'Prediction_L1: $f = x^{' + str(round(p_L1[2], 3)) + '} - ' + str(round(p_L1[1], 3)) + 'x + ' + str(round(p_L1[0], 3)) + '$')
-    ax.plot(x, y_prediction_L2, 'm', label = 'Prediction_L2: $f = x^{' + str(round(p_L2[2], 3)) + '} - ' + str(round(p_L2[1], 3)) + 'x + ' + str(round(p_L2[0], 3)) + '$')
+    ax.plot(x, y_prediction, 'b', label = 'Prediction: $f = ' + str(round(p[2], 3)) + 'x^{2} - ' + str(round(p[1], 3)) + 'x + ' + str(round(p[0], 3)) + '$')
+    ax.plot(x, y_prediction_L1, 'g', label = 'Prediction_L1: $f = ' + str(round(p_L1[2], 3)) + 'x^{2} - ' + str(round(p_L1[1], 3)) + 'x + ' + str(round(p_L1[0], 3)) + '$')
+    ax.plot(x, y_prediction_L2, 'm', label = 'Prediction_L2: $f = ' + str(round(p_L2[2], 3)) + 'x^{2} - ' + str(round(p_L2[1], 3)) + 'x + ' + str(round(p_L2[0], 3)) + '$')
     ax.set_xlim(-2.0, 2.0)
     ax.set_ylim(0.0, 11.0)
     ax.legend(loc = 'upper right', fontsize = 'small', frameon = False)
