@@ -4,7 +4,7 @@ import random
 
 ################################################################################
 def Function(x):
-    f = (x - 1.0) ** 2 + 2.0 + 2 * random.random()
+    f = x ** 3 - 2.0 * x ** 2 + 3.0 * x - 4.0 + random.random()
     return f
 
 ################################################################################
@@ -18,14 +18,14 @@ def Model(x, p):
 def NAG(x, y_target, Nor_Type = ''):
     N = len(x)
     y_prediction = np.zeros(N)
-    p = np.zeros(7)
+    p = np.zeros(8)
     v = np.zeros(len(p))
     #
     mu = 0.999
-    dp = 1e-9
-    lr = 1e-6
-    lam = 1.0
-    Loops = 10000
+    dp = 1e-12
+    lr = 1e-10
+    lam = 2.0
+    Loops = 50000
     Error_Loops = np.zeros(Loops)
     for i in range(Loops):
         print(i)
@@ -40,6 +40,10 @@ def NAG(x, y_target, Nor_Type = ''):
                 p[k] -= dp
                 Error_p[k] += (y_prediction_p - y_target[j]) ** 2
                 #print(Error_p[k])
+        Error /= N
+        for m in range(len(p)):
+            Error_p[m] /= N
+        #print(Error)
         #
         if Nor_Type == '':
             pass
@@ -51,6 +55,7 @@ def NAG(x, y_target, Nor_Type = ''):
                         Error_p[j] += lam * np.abs(p[m] + dp)
                     else:
                         Error_p[j] += lam * np.abs(p[m])
+            #print(Error)
         elif Nor_Type == 'L2':
             for m in range(len(p)):
                 Error += 0.5 * lam * p[m] ** 2
@@ -59,20 +64,24 @@ def NAG(x, y_target, Nor_Type = ''):
                         Error_p[j] += 0.5 * lam * (p[m] + dp) ** 2
                     else:
                         Error_p[j] += 0.5 * lam * p[m] ** 2
+            #print(Error)
         #
         for j in range(len(p)):
+            #print(Error_p[j], Error)
             dErr_dp = (Error_p[j] - Error) / dp
+            #print(dErr_dp)
             pre_v = v[j]
             v[j] = mu * v[j]
             v[j] += - lr * dErr_dp
             p[j] += v[j] + mu * (v[j] - pre_v)
+        #print(p)
         Error_Loops[i] = Error
     #
     return(y_prediction, p, Error_Loops)
 
 ################################################################################
 def main():
-    x = np.arange(-2.0, 2.0, 0.1)
+    x = np.arange(-4.0, 6.0, 0.1)
     y_target = np.zeros(len(x))
     for i in range(len(x)):
         y_target[i] = Function(x[i])
@@ -82,19 +91,19 @@ def main():
     y_prediction_L2, p_L2, Error_Loops_L2 = NAG(x, y_target, 'L2')
     #
     fig, ax = mpl.subplots()
-    ax.plot(x, y_target, 'r', label = 'Target: $f = x^{2} - 2x + 3 + noise$')
-    ax.plot(x, y_prediction, 'b', label = 'Prediction: $f = ' + str(round(p[2], 3)) + 'x^{2} - ' + str(round(p[1], 3)) + 'x + ' + str(round(p[0], 3)) + '$')
-    ax.plot(x, y_prediction_L1, 'g', label = 'Prediction_L1: $f = ' + str(round(p_L1[2], 3)) + 'x^{2} - ' + str(round(p_L1[1], 3)) + 'x + ' + str(round(p_L1[0], 3)) + '$')
-    ax.plot(x, y_prediction_L2, 'm', label = 'Prediction_L2: $f = ' + str(round(p_L2[2], 3)) + 'x^{2} - ' + str(round(p_L2[1], 3)) + 'x + ' + str(round(p_L2[0], 3)) + '$')
-    ax.set_xlim(-2.0, 2.0)
-    ax.set_ylim(0.0, 11.0)
+    ax.plot(x, y_target, 'r', label = 'Target: $f = x^{3} - 2x^{2} + 3x - 4 + noise$')
+    ax.plot(x, y_prediction, 'b', label = 'Prediction: $f = ' + str(round(p[3], 3)) + 'x^{3} - ' + str(round(p[2], 3)) + 'x^{2} + ' + str(round(p[1], 3)) + 'x - ' + str(round(p[0], 3)) + '$')
+    ax.plot(x, y_prediction_L1, 'g', label = 'Prediction_L1: $f = ' + str(round(p_L1[3], 3)) + 'x^{3} - ' + str(round(p_L1[2], 3)) + 'x^{2} + ' + str(round(p_L1[1], 3)) + 'x - ' + str(round(p_L1[0], 3)) + '$')
+    ax.plot(x, y_prediction_L2, 'm', label = 'Prediction_L2: $f = ' + str(round(p_L2[3], 3)) + 'x^{3} - ' + str(round(p_L2[2], 3)) + 'x^{2} + ' + str(round(p_L2[1], 3)) + 'x - ' + str(round(p_L2[0], 3)) + '$')
+    ax.set_xlim(-3.0, 5.0)
+    #ax.set_ylim(-8.0, 8.0)
     ax.legend(loc = 'upper right', fontsize = 'small', frameon = False)
     mpl.savefig('tar-pre.png', dpi = 600)
     mpl.show()
     fig, ax = mpl.subplots()
-    ax.plot(p, 'b', label = 'P: ' + str(round(p[0], 3)) + '; ' + str(round(p[1], 3)) + '; ' + str(round(p[2], 3)) + '; ' + str(round(p[3], 3)) + '; ' + str(round(p[4], 3)) + '; ' + str(round(p[5], 3)) + '; ' + str(round(p[6], 3)))
-    ax.plot(p_L1, 'g', label = 'P_L1: ' + str(round(p_L1[0], 3)) + '; ' + str(round(p_L1[1], 3)) + '; ' + str(round(p_L1[2], 3)) + '; ' + str(round(p_L1[3], 3)) + '; ' + str(round(p_L1[4], 3)) + '; ' + str(round(p_L1[5], 3)) + '; ' + str(round(p_L1[6], 3)))
-    ax.plot(p_L2, 'm', label = 'P_L2: ' + str(round(p_L2[0], 3)) + '; ' + str(round(p_L2[1], 3)) + '; ' + str(round(p_L2[2], 3)) + '; ' + str(round(p_L2[3], 3)) + '; ' + str(round(p_L2[4], 3)) + '; ' + str(round(p_L2[5], 3)) + '; ' + str(round(p_L2[6], 3)))
+    ax.plot(p, 'b', label = 'P: ' + str(round(p[0], 3)) + '; ' + str(round(p[1], 3)) + '; ' + str(round(p[2], 3)) + '; ' + str(round(p[3], 3)) + '; ' + str(round(p[4], 3)) + '; ' + str(round(p[5], 3)) + '; ' + str(round(p[6], 3)) + '; ' + str(round(p[7], 3)))
+    ax.plot(p_L1, 'g', label = 'P_L1: ' + str(round(p_L1[0], 3)) + '; ' + str(round(p_L1[1], 3)) + '; ' + str(round(p_L1[2], 3)) + '; ' + str(round(p_L1[3], 3)) + '; ' + str(round(p_L1[4], 3)) + '; ' + str(round(p_L1[5], 3)) + '; ' + str(round(p_L1[6], 3)) + '; ' + str(round(p_L1[7], 3)))
+    ax.plot(p_L2, 'm', label = 'P_L2: ' + str(round(p_L2[0], 3)) + '; ' + str(round(p_L2[1], 3)) + '; ' + str(round(p_L2[2], 3)) + '; ' + str(round(p_L2[3], 3)) + '; ' + str(round(p_L2[4], 3)) + '; ' + str(round(p_L2[5], 3)) + '; ' + str(round(p_L2[6], 3)) + '; ' + str(round(p_L2[7], 3)))
     ax.legend(loc = 'upper right', fontsize = 'small', frameon = False)
     mpl.savefig('p.png', dpi = 600)
     mpl.show()
