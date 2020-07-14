@@ -164,6 +164,71 @@ def Distribution_Cloud(N, UnA_N, X, Y, Adsorbed, I, J, XL = 0.0, XH = 0.0, YL = 
 
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
+def Distribution_Cloud_FourPhase(N, UnA_N, X0, X1, X2, Y, Adsorbed, I, J, XLt = 0.0, XHt = 0.0, XLn = 0.0, XHn = 0.0, YL = 0.0, YH = 0.0):
+    #
+    if XLt != XHt:
+        XLowt = XLt
+        XHight = XHt
+    else:
+        XLowt = min(np.min(X0), np.min(X1))
+        XHight = max(np.max(X0), np.max(X1))
+    if XLn != XHn:
+        XLown = XLn
+        XHighn = XHn
+    else:
+        XLown = np.min(X3)
+        XHighn = np.max(X3)
+    if YL != YH:
+        YLow = YL
+        YHigh = YH
+    else:
+        YLow = np.min(Y)
+        YHigh = np.max(Y)
+    dXt = (XHight - XLowt) / I
+    dXn = (XHighn - XLown) / I
+    dY = (YHigh - YLow) / J
+    #
+    x0 = np.zeros((I + 1, 3))                                                   #GridLow, GridCenter, GridHigh
+    x1 = np.zeros((I + 1, 3))
+    x2 = np.zeros((I + 1, 3))
+    y = np.zeros((J + 1, 3))
+    Rf = np.zeros((I + 1, I + 1, I + 1, J + 1))
+    for i in range(I + 1):
+        x0[i, 0] = XLowt + (i - 0.5) * dXt
+        x0[i, 1] = (XLowt + XHight + (2 * i - I) * dXt) / 2
+        x0[i, 2] = XHight - (I - i - 0.5) * dXt
+        x1[i, 0] = XLowt + (i - 0.5) * dXt
+        x1[i, 1] = (XLowt + XHight + (2 * i - I) * dXt) / 2
+        x1[i, 2] = XHight - (I - i - 0.5) * dXt
+        x2[i, 0] = XLown + (i - 0.5) * dXn
+        x2[i, 1] = (XLown + XHighn + (2 * i - I) * dXn) / 2
+        x2[i, 2] = XHighn - (I - i - 0.5) * dXn
+    for j in range(J + 1):
+        y[j, 0] = YLow + (j - 0.5) * dY
+        y[j, 1] = (YLow + YHigh + (2 * j - J) * dY) / 2
+        y[j, 2] = YHigh - (J - j - 0.5) * dY
+    #
+    for n in range(N):
+        if Adsorbed[n] != 1:
+            for j in range(J + 1):
+                if y[j, 0] <= Y[n] < y[j, 2]:
+                    for i in range(I + 1):
+                        if x0[i, 0] <= X0[n] < x0[i, 2]:
+                            for m in range(I + 1):
+                                if x1[m, 0] <= X1[n] < x1[m, 2]:
+                                    for k in range(I + 1):
+                                        if x2[k, 0] <= X2[n] < x2[k, 2]:
+                                            Rf[i, m, k, j] += 1.0
+                                            break
+                                    break
+                            break
+                    break
+    Rf /= UnA_N * dXt * dXt * dXn * dY                                          #Probability Density
+    #
+    return(x0, x1, x2, y, Rf)
+
+################################################################################
+@nb.jit(nopython = True, nogil = True)
 def Energy_Distribution_Cloud(N, X, Y, X1, Y1, X2, Y2, Adsorbed, I, J, XL = 0.0, XH = 0.0, YL = 0.0, YH = 0.0):
     #
     if XL != XH:
@@ -1298,10 +1363,11 @@ def Gradient_Least_Squares(Model, Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, Ga
 '''
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
-def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, GasTmpV, WallTmpV, mu, lt, v):
+def Gradient_Least_Squares_FourPhase(Model, Type, Reg_Type, ui, vi, wi, ur, Rfuir, fui, fvi, fwi, GasTmpV, WallTmpV, mu, lt, v):
     #
     Mod_Rfu = np.zeros((len(ui), len(vi), len(wi), len(ur)))
     Mod_Rfu_dlt = np.zeros((len(ui), len(vi), len(wi), len(ur), len(lt)))
+    Mod_Rfuiur = np.zeros((len(ui), len(ur)))
     Mod_fui = np.zeros(len(ui))
     Mod_fur = np.zeros(len(ur))
     Mod_Nor = np.zeros(len(ui))
@@ -1310,6 +1376,7 @@ def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fv
     Err_dlt = np.zeros(len(lt))
     alpha = 1e-4
     dlt = 1e-8
+    lam = 1.0
     Lim_lt_t = np.ones((len(lt), 2))
     #Lim_lt_t[:, 0] *= -100.0
     Lim_lt_t[:, 0] *= 0.0
@@ -1347,6 +1414,7 @@ def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fv
                             lt[p] += dlt
                             Mod_Rfu_dlt[i, k, m, j, p] = Model(Type, ui[i, 1] * GasTmpV / WallTmpV, vi[k, 1] * GasTmpV / WallTmpV, wi[m, 1] * GasTmpV / WallTmpV, ur[j, 1] * GasTmpV / WallTmpV, lt) * GasTmpV / WallTmpV * dfui * fvi[k]  * fwi[m]
                             lt[p] -= dlt
+                        Mod_Rfuiur[i, j] += Mod_Rfu[i, k, m, j] * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
                         Mod_fui[i] += Mod_Rfu[i, k, m, j] * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
                         Mod_Nor[i] += Mod_Rfu[i, k, m, j] / dfui * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
                         Mod_fur[j] += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
@@ -1354,6 +1422,28 @@ def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fv
                         Err += (Rfuir[i, k, m, j] - Mod_Rfu[i, k, m, j]) ** 2
                         for p in range(len(lt)):
                             Err_dlt[p] += (Rfuir[i, k, w, j] - Mod_Rfu_dlt[i, k, w, j, p]) ** 2
+    #
+    if Reg_Type == '':
+        pass
+    elif Reg_Type == 'L1':
+        for m in range(len(lt)):
+            Err += lam * np.abs(lt[m])
+            for j in range(len(lt)):
+                if j == m:
+                    Err_dlt[j] += lam * np.abs(lt[m] + dlt)
+                else:
+                    Err_dlt[j] += lam * np.abs(lt[m])
+        #print(Error)
+    elif Reg_Type == 'L2':
+        for m in range(len(lt)):
+            Err += 0.5 * lam * lt[m] ** 2
+            for j in range(len(lt)):
+                if j == m:
+                    Err_dlt[j] += 0.5 * lam * (lt[m] + dlt) ** 2
+                else:
+                    Err_dlt[j] += 0.5 * lam * lt[m] ** 2
+        #print(Error)
+    #
     dErr_dlt = np.zeros(len(lt))
     for p in range(len(lt)):
         dErr_dlt[p] = (Err_dlt[p] - Err) / dlt
@@ -1376,7 +1466,7 @@ def Gradient_Least_Squares_FourPhase(Model, Type, ui, vi, wi, ur, Rfuir, fui, fv
                 lt[p] = Lim_lt_n[p, 1] - 2 * alpha#dlt
                 v[p] = - v[p]
     #
-    return(Mod_Rfu, Mod_Nor, Mod_Fu, Mod_fui, Mod_fur, Err, lt, v)
+    return(Mod_Rfuiur, Mod_Nor, Mod_Fu, Mod_fui, Mod_fur, Err, lt, v)
 
 '''
 ################################################################################
@@ -1806,8 +1896,13 @@ def main():
     #with open('Fitting-Z-wi.log', 'w') as out_z:
     #    print('Loop\tltwi', file = out_z)
     #
+    ui, vi, wi, ur, Rfiur = Distribution_Cloud_FourPhase(N, UnA_N, VX, VY, VZ, FVX, Adsorbed, I, I, -3.0, 3.0, -3.0, 0.0, -3.0, 3.0)
+    #ui, vi, wi, vr, Rfivr = Distribution_Cloud_FourPhase(N, UnA_N, VX, VY, VZ, FVY, Adsorbed, I, I, -3.0, 3.0, -3.0, 0.0, -3.0, 3.0)
+    #ui, vi, wi, wr, Rfiwr = Distribution_Cloud_FourPhase(N, UnA_N, VX, VY, VZ, FVZ, Adsorbed, I, I, -3.0, 3.0, -3.0, 0.0, 0.0, 3.0)
+    #
     for l in range(Loops + 1):
-        CLL_Rfu, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares(CLL_R, 0, ui, vi, wi, ur, Rfuir, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
+        CLL_Rfuiur, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares_FourPhase(CLL_R, 0, '', ui, vi, wi, ur, Rfiur, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
+        #CLL_Rfu, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares(CLL_R, 0, ui, vi, wi, ur, Rfuir, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
         #CLL_Rfv, CLL_Norv, CLL_Fv, CLL_fvi, CLL_fvr, Erry, lt_y, v_y = Gradient_Least_Squares(CLL_R, 0, vi, ui, wi, vr, Rfvir, fvUa, fuUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_y, v_y)
         #if l % 2 == 0:
         #    CLL_Rfw, CLL_Norw, CLL_Fw, CLL_fwi, CLL_fwr, Errz, lt_z, v_z, ltwi_z, vwi_z = Gradient_Least_Squares(CLL_R, 1, wi, ui, vi, wr, Rfwir, fwUa, fuUa, fvUa, GasTGasmpV, WallTGasmpV, mu, lt_z, v_z, ltwi_z, vwi_z)
@@ -1849,7 +1944,7 @@ def main():
         #for p in range(len(lt_z)):
         #    lt_Z[l, p] = lt_z[p]
         if l % 100 == 0:
-            Cloud_dat('VX', 'CLL_FVX', I, I, ui, ur, CLL_Rfu, 'Rfu', 'CLL', Rfuir, 'MD', l)
+            Cloud_dat('VX', 'CLL_FVX', I, I, ui, ur, CLL_Rfuiur, 'Rfu', 'CLL', Rfuir, 'MD', l)
             #Cloud_dat('VY', 'CLL_FVY', I, I, vi, vr, CLL_Rfv, 'Rfv', 'CLL', Rfvir, 'MD', l)
             #if l % 200 == 0:
             #    Cloud_dat('VZ', 'CLL_FVZ', I, I, wi, wr, CLL_Rfw, 'Rfw', 'CLL', Rfwir, 'MD', l)
