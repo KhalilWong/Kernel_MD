@@ -1414,11 +1414,11 @@ def Gradient_Least_Squares_FourPhase(Model, Type, Reg_Type, ui, vi, wi, ur, Rfui
                             lt[p] += dlt
                             Mod_Rfu_dlt[i, k, m, j, p] = Model(Type, ui[i, 1] * GasTmpV / WallTmpV, vi[k, 1] * GasTmpV / WallTmpV, wi[m, 1] * GasTmpV / WallTmpV, ur[j, 1] * GasTmpV / WallTmpV, lt) * GasTmpV / WallTmpV * dfui * fvi[k]  * fwi[m]
                             lt[p] -= dlt
-                        Mod_Rfuiur[i, j] += Mod_Rfu[i, k, m, j] * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
-                        Mod_fui[i] += Mod_Rfu[i, k, m, j] * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
-                        Mod_Nor[i] += Mod_Rfu[i, k, m, j] / dfui * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
-                        Mod_fur[j] += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
-                        Mod_Fu += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * (ur[j, 2] - ur[j, 0]) * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_Rfuiur[i, j] += Mod_Rfu[i, k, m, j] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_fui[i] += Mod_Rfu[i, k, m, j] * (ur[j, 2] - ur[j, 0]) * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_Nor[i] += Mod_Rfu[i, k, m, j] / dfui * (ur[j, 2] - ur[j, 0]) * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_fur[j] += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
+                        Mod_Fu += Mod_Rfu[i, k, m, j] * (ui[i, 2] - ui[i, 0]) * (ur[j, 2] - ur[j, 0]) * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
                         Err += (Rfuir[i, k, m, j] - Mod_Rfu[i, k, m, j]) ** 2
                         for p in range(len(lt)):
                             Err_dlt[p] += (Rfuir[i, k, w, j] - Mod_Rfu_dlt[i, k, w, j, p]) ** 2
