@@ -24,7 +24,7 @@ def NAG(x, y_target, Nor_Type = ''):
     mu = 0.999
     dp = 1e-12
     lr = 1e-10
-    lam = 2.0
+    lam = 1.0
     Loops = 50000
     Error_Loops = np.zeros(Loops)
     for i in range(Loops):
@@ -95,7 +95,7 @@ def main():
     ax.plot(x, y_prediction, 'b', label = 'Prediction: $f = ' + str(round(p[3], 3)) + 'x^{3} - ' + str(round(p[2], 3)) + 'x^{2} + ' + str(round(p[1], 3)) + 'x - ' + str(round(p[0], 3)) + '$')
     ax.plot(x, y_prediction_L1, 'g', label = 'Prediction_L1: $f = ' + str(round(p_L1[3], 3)) + 'x^{3} - ' + str(round(p_L1[2], 3)) + 'x^{2} + ' + str(round(p_L1[1], 3)) + 'x - ' + str(round(p_L1[0], 3)) + '$')
     ax.plot(x, y_prediction_L2, 'm', label = 'Prediction_L2: $f = ' + str(round(p_L2[3], 3)) + 'x^{3} - ' + str(round(p_L2[2], 3)) + 'x^{2} + ' + str(round(p_L2[1], 3)) + 'x - ' + str(round(p_L2[0], 3)) + '$')
-    ax.set_xlim(-3.0, 5.0)
+    ax.set_xlim(-4.0, 6.0)
     #ax.set_ylim(-8.0, 8.0)
     ax.legend(loc = 'upper right', fontsize = 'small', frameon = False)
     mpl.savefig('tar-pre.png', dpi = 600)
