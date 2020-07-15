@@ -1468,7 +1468,7 @@ def Gradient_Least_Squares_FourPhase(Model, Type, Reg_Type, ui, vi, wi, ur, Rfui
     #
     return(Mod_Rfuiur, Mod_Nor, Mod_Fu, Mod_fui, Mod_fur, Err, lt, v)
 
-'''
+
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
 def Irrelevant(Model, Type, N, ui, vr, vi, wi, fui, fvi, fwi, GasTmpV, WallTmpV, lt):
@@ -1486,7 +1486,7 @@ def Irrelevant(Model, Type, N, ui, vr, vi, wi, fui, fvi, fwi, GasTmpV, WallTmpV,
                         elif Type == 1:
                             Mod_Rfu[i, j] += Model(Type, wi[m, 1] * GasTmpV / WallTmpV, ui[i, 1] * GasTmpV / WallTmpV, vi[k, 1] * GasTmpV / WallTmpV, vr[j, 1] * GasTmpV / WallTmpV, lt) * GasTmpV / WallTmpV * dfui * fvi[k] * fwi[m] * (vi[k, 2] - vi[k, 0]) * (wi[m, 2] - wi[m, 0])
     return(Mod_Rfu)
-'''
+
 ################################################################################
 @nb.jit(nopython = True, nogil = True)
 def CLL_O(Type, ui, ur, AC):
@@ -1763,9 +1763,9 @@ def main():
     Cloud_dat('VZ', 'Tt', I, I, wi, tw, Rfwit)
     #
     #FIG8_Distribution_Plot(GasTGasmpV, w, fur, fvr, fwr)
-    #User_lt = np.array([0.909, 2.639, 0.095, 1.0, 0.0, 0.0])
-    #User_Rfuivr = Irrelevant(CLL_R, 0, N, ui, vr, vi, wi, fui, fvi, fwi, GasTGasmpV, WallTGasmpV, User_lt)
-    #Cloud_dat('VX', 'CLL_FVY', I, I, ui, vr, User_Rfuivr, CloudName1 = 'f', Type = 'CLL', CloudDat0 = Rfuivr, CloudName0 = 'MD', Loop = 0)
+    User_lt = np.array([0.909, 2.639, 0.095, 1.0, 0.0, 0.0])
+    User_Rfuivr = Irrelevant(CLL_R, 0, N, ui, vr, vi, wi, fui, fvi, fwi, GasTGasmpV, WallTGasmpV, User_lt)
+    Cloud_dat('VX', 'CLL_FVY', I, I, ui, vr, User_Rfuivr, CloudName1 = 'f', Type = 'CLL', CloudDat0 = Rfuivr, CloudName0 = 'MD', Loop = 0)
     #User_lt = np.array([0.054, 0.546, 0.173, 0.827, 0.0, 0.0])
     #User_Rfuiwr = Irrelevant(CLL_R, 1, N, ui, wr, vi, wi, fui, fvi, fwi, GasTGasmpV, WallTGasmpV, User_lt)
     #Cloud_dat('VX', 'CLL_FVZ', I, I, ui, wr, User_Rfuiwr, CloudName1 = 'f', Type = 'CLL', CloudDat0 = Rfuiwr, CloudName0 = 'MD', Loop = 0)
@@ -1901,7 +1901,7 @@ def main():
     #ui, vi, wi, wr, Rfiwr = Distribution_Cloud_FourPhase(N, UnA_N, VX, VY, VZ, FVZ, Adsorbed, I, I, -3.0, 3.0, -3.0, 0.0, 0.0, 3.0)
     #
     for l in range(Loops + 1):
-        CLL_Rfuiur, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares_FourPhase(CLL_R, 0, '', ui, vi, wi, ur, Rfiur, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
+        CLL_Rfuiur, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares_FourPhase(CLL_R, 0, 'L1', ui, vi, wi, ur, Rfiur, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
         #CLL_Rfu, CLL_Noru, CLL_Fu, CLL_fui, CLL_fur, Errx, lt_x, v_x = Gradient_Least_Squares(CLL_R, 0, ui, vi, wi, ur, Rfuir, fuUa, fvUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_x, v_x)
         #CLL_Rfv, CLL_Norv, CLL_Fv, CLL_fvi, CLL_fvr, Erry, lt_y, v_y = Gradient_Least_Squares(CLL_R, 0, vi, ui, wi, vr, Rfvir, fvUa, fuUa, fwUa, GasTGasmpV, WallTGasmpV, mu, lt_y, v_y)
         #if l % 2 == 0:
